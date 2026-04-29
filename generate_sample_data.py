@@ -75,17 +75,24 @@ def make_rid_file():
 
 def make_hubis_file():
     """
-    hubis_샘플.xlsx — 외부 데이터소스(Hubis) 기준 성별·생년 정보
-    실제 파일 구조: 1행 건너뛰고 bCODE·성별·출생연도·출생월 순
+    hubis_샘플.xlsx — 휴비스쌤 추출 데이터 형식
+    실제 형식: pandas 헤더(mg_donor_info:* 컬럼명) + 내부필드명 행(skip 대상) + 데이터
+    매칭 키: bCODE(KBN_DONOR), 병록번호 없음
     """
-    header_row = ['식별코드', '성별구분', '출생연도', '출생월']
+    col_names = [
+        'mg_donor_info:KBN_DONOR',
+        'mg_donor_info:SEX',
+        'mg_donor_info:BIRTH_YEAR',
+        'mg_donor_info:BIRTH_MONTH',
+    ]
+    field_row = ['KBN_DONOR', 'SEX', 'BIRTH_YEAR', 'BIRTH_MONTH']  # 실제 데이터에서 skip
     data = [
         [10005, '남', 2001, 9],
         [10008, '여', 1993, 2],
     ]
-    df = pd.DataFrame([header_row] + data)
+    df = pd.DataFrame([field_row] + data, columns=col_names)
     out = OUT_DIR / 'hubis_샘플.xlsx'
-    df.to_excel(out, index=False, header=False)
+    df.to_excel(out, index=False)
     print(f'생성: {out.name}')
 
 

@@ -115,6 +115,14 @@ def parse_personal_no(pers_no: str) -> Tuple[Optional[str], Optional[int], Optio
     return gender, None, None
 
 
+def _build_pers_no(gender_raw: str, year: float, month: float) -> str:
+    """성별·출생연도·출생월 → 개인번호 형식 (예: F93.05)"""
+    g = 'M' if str(gender_raw).strip() in ('M', '남', '남성', '남자') else 'F'
+    yy = int(year) % 100
+    mm = int(month)
+    return f"{g}{yy:02d}.{mm:02d}"
+
+
 def get_file_path(title: str) -> str:
     root = tk.Tk()
     try:
@@ -849,12 +857,19 @@ def run_send_error_notification(progress: ProgressWindow = None):
 # =============================================================================
 
 def _read_hubis_fix(path: Path) -> pd.DataFrame:
-    """휴비스쌤 수정파일 읽기 — 원본 수집일지와 동일한 컬럼 구조"""
+    """
+    휴비스쌤 수정파일 읽기
+    형식: bCODE(KBN_DONOR) | 성별(SEX) | 출생연도(BIRTH_YEAR) | 출생월(BIRTH_MONTH)
+    첫 번째 데이터 행은 내부 필드명 행이므로 건너뜁니다.
+    """
     try:
-        xls = pd.read_excel(path, sheet_name=None, engine='calamine')
-        dfs = [df for df in xls.values()
-               if not df.empty and COL_HOSP_NUM in df.columns]
-        return pd.concat(dfs, ignore_index=True) if dfs else pd.DataFrame()
+        df = pd.read_excel(path, engine='calamine')
+        df = df.iloc[1:].reset_index(drop=True)
+        df.columns = [COL_BCODE, COL_GENDER, '출생연도', '출생월']
+        df[COL_BCODE] = df[COL_BCODE].apply(clean_str)
+        df['출생연도'] = pd.to_numeric(df['출생연도'], errors='coerce')
+        df['출생월'] = pd.to_numeric(df['출생월'], errors='coerce')
+        return df
     except Exception:
         return pd.DataFrame()
 
@@ -923,15 +938,21 @@ def run_update_collection_log(progress: ProgressWindow = None):
         if progress:
             progress.update(40, "수정파일 읽는 중...")
 
-        df_fix = (_read_hubis_fix(Path(fix_path)) if system == '휴비스쌤'
-                  else _read_supreme_fix(Path(fix_path)))
-
-        if df_fix.empty or COL_HOSP_NUM not in df_fix.columns:
-            messagebox.showerror("오류", "수정파일에서 병록번호를 찾을 수 없습니다.")
-            return
-
-        df_fix[COL_HOSP_NUM] = df_fix[COL_HOSP_NUM].apply(pad_hosp_num)
-        fix_map = {row[COL_HOSP_NUM]: row for _, row in df_fix.iterrows()}
+        if system == '휴비스쌤':
+            df_fix = _read_hubis_fix(Path(fix_path))
+            if df_fix.empty or COL_BCODE not in df_fix.columns:
+                messagebox.showerror("오류", "수정파일에서 bCODE를 찾을 수 없습니다.")
+                return
+            fix_map = {row[COL_BCODE]: row for _, row in df_fix.iterrows()}
+            match_col = COL_BCODE
+        else:
+            df_fix = _read_supreme_fix(Path(fix_path))
+            if df_fix.empty or COL_HOSP_NUM not in df_fix.columns:
+                messagebox.showerror("오류", "수정파일에서 병록번호를 찾을 수 없습니다.")
+                return
+            df_fix[COL_HOSP_NUM] = df_fix[COL_HOSP_NUM].apply(pad_hosp_num)
+            fix_map = {row[COL_HOSP_NUM]: row for _, row in df_fix.iterrows()}
+            match_col = COL_HOSP_NUM
 
         if progress:
             progress.update(60, "수정 사항 적용 중...")
@@ -943,25 +964,40 @@ def run_update_collection_log(progress: ProgressWindow = None):
             updated_sheets = {}
 
             for sheet_name, df in sheets.items():
-                if COL_HOSP_NUM not in df.columns:
+                if match_col not in df.columns:
                     updated_sheets[sheet_name] = df
                     continue
 
                 df = df.copy()
-                df[COL_HOSP_NUM] = df[COL_HOSP_NUM].apply(pad_hosp_num)
-                fix_cols = [c for c in df_fix.columns
-                            if c in df.columns and c != COL_HOSP_NUM]
+                df[match_col] = df[match_col].apply(
+                    pad_hosp_num if match_col == COL_HOSP_NUM else clean_str)
 
-                for idx, row in df.iterrows():
-                    hosp = clean_str(row[COL_HOSP_NUM])
-                    if hosp not in fix_map:
-                        continue
-                    fix_row = fix_map[hosp]
-                    for col in fix_cols:
-                        new_val = fix_row.get(col)
-                        if pd.notna(new_val) and str(new_val).strip():
-                            df.at[idx, col] = new_val
+                if system == '휴비스쌤':
+                    for idx, row in df.iterrows():
+                        key = clean_str(row.get(match_col, ''))
+                        if not key or key not in fix_map:
+                            continue
+                        fix_row = fix_map[key]
+                        year = fix_row.get('출생연도')
+                        month = fix_row.get('출생월')
+                        gender = fix_row.get(COL_GENDER)
+                        if pd.notna(year) and pd.notna(month) and pd.notna(gender):
+                            df.at[idx, COL_PERS_NO] = _build_pers_no(
+                                str(gender), float(year), float(month))
                             total_updated += 1
+                else:
+                    fix_cols = [c for c in df_fix.columns
+                                if c in df.columns and c != match_col]
+                    for idx, row in df.iterrows():
+                        key = clean_str(row.get(match_col, ''))
+                        if not key or key not in fix_map:
+                            continue
+                        fix_row = fix_map[key]
+                        for col in fix_cols:
+                            new_val = fix_row.get(col)
+                            if pd.notna(new_val) and str(new_val).strip():
+                                df.at[idx, col] = new_val
+                                total_updated += 1
 
                 updated_sheets[sheet_name] = df
 
