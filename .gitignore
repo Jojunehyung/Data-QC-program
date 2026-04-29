@@ -1,0 +1,14 @@
+# 실제 데이터 파일
+*.xlsx
+*.xlsm
+*.xls
+*.csv
+
+# 샘플 데이터는 허용
+!sample_data/
+!sample_data/*.xlsx
+
+__pycache__/
+*.py[cod]
+.env
+*.log

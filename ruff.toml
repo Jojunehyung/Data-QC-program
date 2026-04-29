@@ -1,0 +1,15 @@
+[lint]
+select = ["E", "W", "F"]
+ignore = [
+    "E501",   # 줄 길이 제한 무시 (한국어 주석)
+    "E402",   # sys.path 조작 후 import 허용
+    "E741",   # 변수명 l, O 허용
+    "F401",   # 조건부 import 패턴 허용
+]
+
+exclude = [
+    "sample_data/",
+    "generate_ppt.py",
+    "__pycache__/",
+    ".venv/",
+]
