@@ -112,6 +112,55 @@
 
 ---
 
+## 품질 관리 체계
+
+### AI 에이전트 하네스 (Agent Harness)
+
+AI가 이 프로젝트를 수정할 때 따라야 할 행동 원칙과 컨텍스트를 문서로 정의합니다.
+
+| 문서 | 역할 |
+|---|---|
+| `CLAUDE.md` | 핵심 원칙 요약 및 코드 위치 참조 |
+| `AGENTS.md` | AI 행동 원칙 (절대 금지·항상 유지·커밋 원칙) |
+| `ARCHITECTURE.md` | 6단계 파이프라인 구조 및 데이터 흐름 |
+| `docs/design-docs/` | 절대 변경 불가 핵심 원칙, 데이터 모델 |
+| `docs/product-specs/` | 6개 기능별 입력·처리·출력 스펙 |
+| `docs/exec-plans/` | 실행 계획 및 기술 부채 관리 |
+| `docs/QUALITY_SCORE.md` | 배포 가능 기준 체크리스트 |
+| `docs/RELIABILITY.md` | 파일·데이터·GUI 안정성 원칙 |
+| `docs/SECURITY.md` | 환자 데이터·이메일 보안 원칙 |
+
+### 테스트 하네스 (Test Harness)
+
+GUI·파일 I/O 없이 순수 함수만 단위 테스트합니다.
+
+```bash
+pytest tests/
+```
+
+| 테스트 대상 | 검증 내용 |
+|---|---|
+| `clean_str` | NaN 처리, 공백 제거, `.0` 후처리 |
+| `pad_hosp_num` | 7자리 → 8자리 패딩 |
+| `resolve_year` | 2자리 연도 → 4자리 변환 |
+| `parse_personal_no` | 개인번호(M93.05) 파싱 |
+| `is_family_name` | 가족 키워드 감지 |
+| `build_internal_key` | 생성ID 형식 검증 |
+| `_detect_columns` | R-ID 파일 컬럼 자동 감지 |
+| `_build_email_body` | 이메일 본문 생성 |
+
+**39개 테스트 전체 통과**
+
+### 린터 (Linter)
+
+```bash
+ruff check .
+```
+
+`ruff.toml` 기준으로 E·W·F 규칙을 적용합니다. **오류 0개** 상태를 유지합니다.
+
+---
+
 ## 실행 방법
 
 ```bash
