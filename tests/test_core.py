@@ -15,6 +15,7 @@ from clinical_data_qc import (
     COL_HOSP_NUM,
     SUPREME_PREFIX,
     _build_email_body,
+    _build_pers_no,
     _detect_columns,
     _read_supreme_fix,
     build_internal_key,
@@ -172,6 +173,31 @@ class TestBuildInternalKey:
     def test_empty_name_uses_empty_char(self):
         key = build_internal_key('F', 1990, 4, '', '2024-03-16')
         assert key == 'F199004' + '20240316'
+
+
+# =============================================================================
+# _build_pers_no
+# =============================================================================
+
+class TestBuildPersNo:
+    def test_male(self):
+        assert _build_pers_no('남', 1993, 5) == 'M93.05'
+
+    def test_female(self):
+        assert _build_pers_no('여', 1975, 11) == 'F75.11'
+
+    def test_2000s_year(self):
+        assert _build_pers_no('남', 2001, 9) == 'M01.09'
+
+    def test_gender_code_m(self):
+        assert _build_pers_no('M', 1990, 4) == 'M90.04'
+
+    def test_gender_code_f(self):
+        assert _build_pers_no('F', 1955, 12) == 'F55.12'
+
+    def test_month_zero_padded(self):
+        result = _build_pers_no('여', 1993, 2)
+        assert result == 'F93.02'
 
 
 # =============================================================================

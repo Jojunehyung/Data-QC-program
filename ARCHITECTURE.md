@@ -35,8 +35,10 @@ clinical_data_qc.py
 │
 ├── [STAGE 6] 수집일지 자동 수정   run_update_collection_log()
 │   ├── 휴비스쌤 수정파일 읽기 (_read_hubis_fix)
+│   │   └── bCODE 기준 매칭 → 개인번호 재조합 (_build_pers_no)
 │   ├── 슈프림 수정파일 읽기 (_read_supreme_fix)
-│   └── 병록번호 기준 매칭 → 변경값 덮어쓰기
+│   │   └── 병록번호 기준 매칭 → 변경 컬럼 덮어쓰기
+│   └── 원본 포맷 그대로 출력
 │
 └── [MAIN GUI]                  main()
     ├── 버튼 1: Master DB 생성
