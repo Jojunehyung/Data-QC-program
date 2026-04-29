@@ -505,18 +505,20 @@ def run_rid_matching(progress: ProgressWindow = None):
 
         result_path = Path(src).parent / '매칭결과.xlsx'
 
-        def to_df(rows):
+        def to_df(rows, drop_cols=None):
             df = pd.DataFrame(rows)
             if df.empty:
                 return pd.DataFrame(columns=list(df_master.columns))
             cols = [c for c in df_master.columns if c in df.columns]
-            return df[cols]
+            df = df[cols]
+            return df.drop(columns=drop_cols or [], errors='ignore')
 
         with pd.ExcelWriter(result_path, engine='openpyxl') as writer:
-            to_df(matched).to_excel(writer, sheet_name=SHEET_MATCHED, index=False)
-            to_df(unmatched).drop(columns=[COL_RID], errors='ignore').to_excel(
+            to_df(matched, drop_cols=[COL_GEN_ID]).to_excel(
+                writer, sheet_name=SHEET_MATCHED, index=False)
+            to_df(unmatched, drop_cols=[COL_RID, COL_GEN_ID]).to_excel(
                 writer, sheet_name=SHEET_UNMATCH, index=False)
-            to_df(dups).drop(columns=[COL_RID], errors='ignore').to_excel(
+            to_df(dups, drop_cols=[COL_RID, COL_GEN_ID]).to_excel(
                 writer, sheet_name=SHEET_DUP, index=False)
 
         if progress:
@@ -651,15 +653,18 @@ def run_correction_matching(progress: ProgressWindow = None):
 
         save_path = Path(result_src).parent / '보정매칭결과.xlsx'
 
-        def to_df(rows):
+        def to_df(rows, drop_cols=None):
             df = pd.DataFrame(rows)
-            return df if not df.empty else pd.DataFrame()
+            if df.empty:
+                return pd.DataFrame()
+            return df.drop(columns=drop_cols or [], errors='ignore')
 
         with pd.ExcelWriter(save_path, engine='openpyxl') as writer:
-            to_df(re_matched).to_excel(writer, sheet_name=SHEET_MATCHED, index=False)
-            to_df(still_unmatch).drop(columns=[COL_RID], errors='ignore').to_excel(
+            to_df(re_matched, drop_cols=[COL_GEN_ID]).to_excel(
+                writer, sheet_name=SHEET_MATCHED, index=False)
+            to_df(still_unmatch, drop_cols=[COL_RID, COL_GEN_ID]).to_excel(
                 writer, sheet_name=SHEET_UNMATCH, index=False)
-            to_df(dups).drop(columns=[COL_RID], errors='ignore').to_excel(
+            to_df(dups, drop_cols=[COL_RID, COL_GEN_ID]).to_excel(
                 writer, sheet_name=SHEET_DUP, index=False)
 
         if progress:
