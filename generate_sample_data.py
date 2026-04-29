@@ -115,9 +115,95 @@ def make_supreme_fix_file():
     print(f'생성: {out.name}')
 
 
+def make_master_db():
+    """
+    Master_DB_샘플.xlsx — 1단계 결과물 (2·3단계 입력)
+    수집일지_샘플에서 식별번호 우선순위·가족 분류·생성ID 적용 후 상태
+    """
+    gen_col = '생성ID'
+
+    # 통합데이터: 유효 환자 8명 (가족 제외, O우선)
+    통합 = [
+        (10001, 'O-0001', '12340001', '김가나', 'M93.05', '2024-03-15', 'M199305김20240315'),
+        (10002, 'O-0002', '12340002', '이다라', 'F75.11', '2024-03-15', 'F197511이20240315'),
+        (10003, 'O-0007', '12340003', '박마바', 'M82.07', '2024-03-18', 'M198207박20240318'),
+        (10004, 'O-0003', '12340004', '최사아', 'F90.04', '2024-03-16', 'F199004최20240316'),
+        (10005, 'X-0002', '01234005', '정자차', 'M01.09', '2024-03-16', 'M200109정20240316'),
+        (10006, 'O-0004', '12340006', '강카타', 'F55.12', '2024-03-17', 'F195512강20240317'),
+        (10007, 'O-0005', '12340007', '조파하', 'M79.06', '2024-03-17', 'M197906조20240317'),
+        (10008, 'O-0006', '12340008', '윤거너', 'F93.02', '2024-03-18', 'F199302윤20240318'),
+    ]
+    통합_cols = ['bCODE', '식별번호', '병록번호', '이름', '개인번호', '접수일자', gen_col]
+    df_통합 = pd.DataFrame(통합, columns=통합_cols)
+
+    # 가족데이터: 보호자 1명
+    가족 = [(10001, 'X-0003', '12340001', '김가나', 'M65.03', '2024-03-16', '', '보호자')]
+    df_가족 = pd.DataFrame(가족, columns=통합_cols + ['비고'])
+
+    # 오기데이터: 없음 (빈 시트)
+    df_오기 = pd.DataFrame(columns=통합_cols + ['비고'])
+
+    # 변경이력: 없음 (빈 시트)
+    df_이력 = pd.DataFrame(columns=['병록번호', '이름', '구분', 'bCODE', '식별번호', '접수일자'])
+
+    out = OUT_DIR / 'Master_DB_샘플.xlsx'
+    with pd.ExcelWriter(out, engine='openpyxl') as w:
+        df_통합.to_excel(w, sheet_name='통합데이터', index=False)
+        df_오기.to_excel(w, sheet_name='오기데이터', index=False)
+        df_가족.to_excel(w, sheet_name='가족데이터', index=False)
+        df_이력.to_excel(w, sheet_name='변경이력', index=False)
+        for sheet in ['통합데이터', '오기데이터', '가족데이터']:
+            ws = w.sheets[sheet]
+            col_idx = 통합_cols.index('병록번호') + 1
+            _write_text_col(ws, col_idx)
+    print(f'생성: {out.name}')
+
+
+def make_matching_result():
+    """
+    매칭결과_샘플.xlsx — 3단계 결과물 (4·5단계 입력)
+    매칭성공 6명 / 미매칭 2명(오기입으로 생성ID 불일치) / 중복 없음
+    """
+    base_cols = ['bCODE', '식별번호', '병록번호', '이름', '개인번호', '접수일자', '생성ID']
+
+    # 매칭성공: R-ID 포함
+    매칭성공 = [
+        (10001, 'O-0001', '12340001', '김가나', 'M93.05', '2024-03-15', 'M199305김20240315', 'RID-2024-001'),
+        (10002, 'O-0002', '12340002', '이다라', 'F75.11', '2024-03-15', 'F197511이20240315', 'RID-2024-002'),
+        (10003, 'O-0007', '12340003', '박마바', 'M82.07', '2024-03-18', 'M198207박20240318', 'RID-2024-003'),
+        (10004, 'O-0003', '12340004', '최사아', 'F90.04', '2024-03-16', 'F199004최20240316', 'RID-2024-004'),
+        (10006, 'O-0004', '12340006', '강카타', 'F55.12', '2024-03-17', 'F195512강20240317', 'RID-2024-005'),
+        (10007, 'O-0005', '12340007', '조파하', 'M79.06', '2024-03-17', 'M197906조20240317', 'RID-2024-006'),
+    ]
+    df_성공 = pd.DataFrame(매칭성공, columns=base_cols + ['R-ID'])
+
+    # 미매칭: R-ID 없음 (정자차·윤거너 — 오기입으로 생성ID 불일치)
+    미매칭 = [
+        (10005, 'X-0002', '01234005', '정자차', 'M01.09', '2024-03-16', 'M200109정20240316'),
+        (10008, 'O-0006', '12340008', '윤거너', 'F93.02', '2024-03-18', 'F199302윤20240318'),
+    ]
+    df_미매칭 = pd.DataFrame(미매칭, columns=base_cols)
+
+    # 중복: 없음 (빈 시트)
+    df_중복 = pd.DataFrame(columns=base_cols + ['비고'])
+
+    out = OUT_DIR / '매칭결과_샘플.xlsx'
+    with pd.ExcelWriter(out, engine='openpyxl') as w:
+        df_성공.to_excel(w, sheet_name='매칭성공', index=False)
+        df_미매칭.to_excel(w, sheet_name='미매칭', index=False)
+        df_중복.to_excel(w, sheet_name='중복', index=False)
+        for sheet, df in [('매칭성공', df_성공), ('미매칭', df_미매칭)]:
+            ws = w.sheets[sheet]
+            col_idx = base_cols.index('병록번호') + 1
+            _write_text_col(ws, col_idx)
+    print(f'생성: {out.name}')
+
+
 if __name__ == '__main__':
     make_collection_log()
     make_rid_file()
     make_hubis_file()
     make_supreme_fix_file()
+    make_master_db()
+    make_matching_result()
     print('\n모든 샘플 데이터가 sample_data/ 폴더에 생성되었습니다.')
