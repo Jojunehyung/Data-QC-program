@@ -439,6 +439,8 @@ def run_rid_matching(progress: ProgressWindow = None):
 
         df_master = pd.read_excel(src, sheet_name=SHEET_MASTER, engine='calamine')
         df_master[COL_HOSP_NUM] = df_master[COL_HOSP_NUM].apply(pad_hosp_num)
+        if COL_GEN_ID not in df_master.columns:
+            df_master[COL_GEN_ID] = ""
         df_master[COL_GEN_ID] = df_master[COL_GEN_ID].apply(clean_str)
         if COL_RID not in df_master.columns:
             df_master[COL_RID] = ""
@@ -859,9 +861,8 @@ def run_send_error_notification(progress: ProgressWindow = None):
 
 def _read_hubis_fix(path: Path) -> pd.DataFrame:
     """
-    휴비스쌤 수정파일 읽기
-    형식: bCODE(KBN_DONOR) | 성별(SEX) | 출생연도(BIRTH_YEAR) | 출생월(BIRTH_MONTH)
-    첫 번째 데이터 행은 내부 필드명 행이므로 건너뜁니다.
+    외부 데이터소스(휴비스쌤) 수정파일 읽기
+    구조: 헤더 행 + 내부필드명 행(skip) + 데이터 (bCODE | 성별 | 출생연도 | 출생월)
     """
     try:
         df = pd.read_excel(path, engine='calamine')

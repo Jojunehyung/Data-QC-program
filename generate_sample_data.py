@@ -4,14 +4,10 @@
 실행하면 sample_data/ 폴더에 테스트용 Excel 파일 4종을 생성합니다.
 모든 데이터는 완전한 가상 데이터이며 실제 환자 정보를 포함하지 않습니다.
 """
-import sys
 from pathlib import Path
 
 import pandas as pd
 from openpyxl.styles import numbers as _n
-
-sys.path.insert(0, str(Path(__file__).parent))
-from clinical_data_qc import build_internal_key, parse_personal_no
 
 OUT_DIR = Path(__file__).parent / 'sample_data'
 OUT_DIR.mkdir(exist_ok=True)
@@ -79,17 +75,12 @@ def make_rid_file():
 
 def make_hubis_file():
     """
-    hubis_샘플.xlsx — 휴비스쌤 추출 데이터 형식
-    실제 형식: pandas 헤더(mg_donor_info:* 컬럼명) + 내부필드명 행(skip 대상) + 데이터
-    매칭 키: bCODE(KBN_DONOR), 병록번호 없음
+    hubis_샘플.xlsx — 외부 데이터소스 형식
+    구조: 헤더 행 + 내부필드명 행(skip 대상) + 데이터
+    매칭 키: bCODE, 병록번호 없음
     """
-    col_names = [
-        'mg_donor_info:KBN_DONOR',
-        'mg_donor_info:SEX',
-        'mg_donor_info:BIRTH_YEAR',
-        'mg_donor_info:BIRTH_MONTH',
-    ]
-    field_row = ['KBN_DONOR', 'SEX', 'BIRTH_YEAR', 'BIRTH_MONTH']  # 실제 데이터에서 skip
+    col_names = ['donor_code', 'sex', 'birth_year', 'birth_month']
+    field_row  = ['donor_code', 'sex', 'birth_year', 'birth_month']
     data = [
         [10005, '남', 2001, 9],
         [10008, '여', 1993, 2],
@@ -103,7 +94,7 @@ def make_hubis_file():
 def make_supreme_fix_file():
     """
     슈프림_수정파일_샘플.xlsx — 슈프림 추출 데이터 형식
-    시트명: '슈프림 추출 데이터(1004-037-315)'
+    시트명: '슈프림 추출 데이터(DEMO-000-000)'
     병록번호 기준 (R-ID 아님), 성별·생년월일 정정값 포함
     """
     data = [
@@ -113,8 +104,8 @@ def make_supreme_fix_file():
     df = pd.DataFrame(data, columns=['병록번호', '환자명', '성별', '생년월일'])
     out = OUT_DIR / '슈프림_수정파일_샘플.xlsx'
     with pd.ExcelWriter(out, engine='openpyxl') as w:
-        df.to_excel(w, sheet_name='슈프림 추출 데이터(1004-037-315)', index=False)
-        ws = w.sheets['슈프림 추출 데이터(1004-037-315)']
+        df.to_excel(w, sheet_name='슈프림 추출 데이터(DEMO-000-000)', index=False)
+        ws = w.sheets['슈프림 추출 데이터(DEMO-000-000)']
         _write_text_col(ws, 1)
     print(f'생성: {out.name}')
 
@@ -122,16 +113,13 @@ def make_supreme_fix_file():
 def make_master_db():
     """
     Master_DB_샘플.xlsx — 1단계 결과물 (2·3단계 입력)
-    수집일지_샘플에서 식별번호 우선순위·가족 분류·내부 식별키 생성 후 상태
+    수집일지_샘플에서 식별번호 우선순위·가족 분류 적용 후 상태
+    내부 식별키(생성ID)는 실제 실행 시 자동 생성되므로 샘플에서는 제외
     """
-    gen_col = '생성ID'
-
-    def _gid(pers_no, name, date):
-        g, y, m = parse_personal_no(pers_no)
-        return build_internal_key(g, y, m, name, date) if (g and y and m) else ''
+    통합_cols = ['bCODE', '식별번호', '병록번호', '이름', '개인번호', '접수일자']
 
     # 통합데이터: 유효 환자 8명 (가족 제외, O우선)
-    _rows = [
+    통합 = [
         (10001, 'O-0001', '12340001', '김가나', 'M93.05', '2024-03-15'),
         (10002, 'O-0002', '12340002', '이다라', 'F75.11', '2024-03-15'),
         (10003, 'O-0007', '12340003', '박마바', 'M82.07', '2024-03-18'),
@@ -141,12 +129,10 @@ def make_master_db():
         (10007, 'O-0005', '12340007', '조파하', 'M79.06', '2024-03-17'),
         (10008, 'O-0006', '12340008', '윤거너', 'F93.02', '2024-03-18'),
     ]
-    통합 = [(*r, _gid(r[4], r[3], r[5])) for r in _rows]
-    통합_cols = ['bCODE', '식별번호', '병록번호', '이름', '개인번호', '접수일자', gen_col]
     df_통합 = pd.DataFrame(통합, columns=통합_cols)
 
     # 가족데이터: 보호자 1명
-    가족 = [(10001, 'X-0003', '12340001', '김가나', 'M65.03', '2024-03-16', '', '보호자')]
+    가족 = [(10001, 'X-0003', '12340001', '김가나', 'M65.03', '2024-03-16', '보호자')]
     df_가족 = pd.DataFrame(가족, columns=통합_cols + ['비고'])
 
     # 오기데이터: 없음 (빈 시트)
