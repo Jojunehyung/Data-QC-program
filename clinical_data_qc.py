@@ -740,7 +740,7 @@ def _ask_target_system() -> Optional[str]:
     root.withdraw()
     top = tk.Toplevel(root)
     top.title("발송 대상 선택")
-    top.geometry("260x130")
+    top.geometry("360x140")
     top.resizable(False, False)
     top.attributes('-topmost', True)
 
@@ -753,9 +753,9 @@ def _ask_target_system() -> Optional[str]:
         result[0] = val
         top.destroy()
 
-    tk.Button(bf, text="수집관리시스템", width=10, bg="#D4F0F0",
+    tk.Button(bf, text="수집관리시스템", width=14, bg="#D4F0F0",
               font=("맑은 고딕", 9), command=lambda: select('수집관리시스템')).pack(side='left', padx=8)
-    tk.Button(bf, text="데이터추출시스템", width=10, bg="#F0E6D4",
+    tk.Button(bf, text="데이터추출시스템", width=14, bg="#F0E6D4",
               font=("맑은 고딕", 9), command=lambda: select('데이터추출시스템')).pack(side='left', padx=8)
 
     top.grab_set()
@@ -804,8 +804,14 @@ def run_send_error_notification(progress: ProgressWindow = None):
 
     try:
         df = pd.read_excel(src, sheet_name=SHEET_UNMATCH, engine='calamine')
-    except Exception as e:
-        messagebox.showerror("오류", f"파일 읽기 실패: {e}")
+    except Exception:
+        xls = pd.ExcelFile(src, engine='calamine')
+        messagebox.showerror(
+            "파일 오류",
+            f"'{SHEET_UNMATCH}' 시트를 찾을 수 없습니다.\n\n"
+            f"이 기능은 3번(R-ID 매칭) 실행 후 생성된 매칭결과.xlsx를 입력으로 사용합니다.\n\n"
+            f"선택한 파일의 시트: {xls.sheet_names}"
+        )
         return
 
     if df.empty:
