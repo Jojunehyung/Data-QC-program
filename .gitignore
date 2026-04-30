@@ -4,11 +4,18 @@
 *.xls
 *.csv
 
-# 샘플 데이터는 허용
+# 샘플 데이터만 허용 (지정 파일만)
 !sample_data/
-!sample_data/*.xlsx
+!sample_data/수집일지_샘플1.xlsx
+!sample_data/수집일지_샘플2.xlsx
+!sample_data/Master_DB_샘플.xlsx
+!sample_data/rid_파일_샘플.xlsx
+!sample_data/수집관리시스템_샘플.xlsx
+!sample_data/데이터추출시스템_수정파일_샘플.xlsx
 
 __pycache__/
 *.py[cod]
 .env
 *.log
+.pytest_cache/
+.ruff_cache/
