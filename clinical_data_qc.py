@@ -784,7 +784,7 @@ def _build_email_body(system: str, col_label: str, ids: list, filename: str) -> 
 def run_send_error_notification(progress: ProgressWindow = None):
     """
     미매칭 데이터 목록을 담당자에게 이메일로 알립니다.
-    - 수집관리시스템 선택: 미매칭 bCODE 목록
+    - 수집관리시스템 선택: 미매칭 내부코드 목록
     - 데이터추출시스템 선택: 미매칭 병록번호 목록
     데모 환경에서는 실제 발송 없이 미리보기만 표시합니다.
     """
@@ -862,7 +862,7 @@ def run_send_error_notification(progress: ProgressWindow = None):
 def _read_datasource_fix(path: Path) -> pd.DataFrame:
     """
     외부 데이터소스(수집관리시스템) 수정파일 읽기
-    구조: 헤더 행 + 내부필드명 행(skip) + 데이터 (bCODE | 성별 | 출생연도 | 출생월)
+    구조: 헤더 행 + 내부필드명 행(skip) + 데이터 (내부코드 | 성별 | 출생연도 | 출생월)
     """
     try:
         df = pd.read_excel(path, engine='calamine')
@@ -943,7 +943,7 @@ def run_update_collection_log(progress: ProgressWindow = None):
         if system == '수집관리시스템':
             df_fix = _read_datasource_fix(Path(fix_path))
             if df_fix.empty or COL_BCODE not in df_fix.columns:
-                messagebox.showerror("오류", "수정파일에서 bCODE를 찾을 수 없습니다.")
+                messagebox.showerror("오류", "수정파일에서 내부코드를 찾을 수 없습니다.")
                 return
             fix_map = {row[COL_BCODE]: row for _, row in df_fix.iterrows()}
             match_col = COL_BCODE
