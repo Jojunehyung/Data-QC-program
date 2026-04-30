@@ -17,7 +17,7 @@ from clinical_data_qc import (
     _build_email_body,
     _build_pers_no,
     _detect_columns,
-    _read_supreme_fix,
+    _read_emr_fix,
     build_internal_key,
     clean_str,
     is_family_name,
@@ -239,17 +239,17 @@ class TestDetectColumns:
 
 class TestBuildEmailBody:
     def test_contains_system_name(self):
-        body = _build_email_body('휴비스쌤', 'bCODE', ['10001', '10002'], 'test.xlsx')
-        assert '휴비스쌤' in body
+        body = _build_email_body('수집관리시스템', '내부코드', ['10001', '10002'], 'test.xlsx')
+        assert '수집관리시스템' in body
 
     def test_contains_count(self):
         ids = [str(i) for i in range(60)]
-        body = _build_email_body('슈프림', '병록번호', ids, 'test.xlsx')
+        body = _build_email_body('데이터추출시스템', '병록번호', ids, 'test.xlsx')
         assert '60건' in body
         assert '외 10건' in body
 
     def test_contains_filename(self):
-        body = _build_email_body('슈프림', '병록번호', ['12340001'], '매칭결과.xlsx')
+        body = _build_email_body('데이터추출시스템', '병록번호', ['12340001'], '매칭결과.xlsx')
         assert '매칭결과.xlsx' in body
 
 
@@ -257,5 +257,5 @@ class TestBuildEmailBody:
 # SUPREME_PREFIX 상수
 # =============================================================================
 
-def test_supreme_prefix_constant():
-    assert SUPREME_PREFIX == '슈프림 추출 데이터'
+def test_emr_prefix_constant():
+    assert SUPREME_PREFIX == '데이터추출 결과'

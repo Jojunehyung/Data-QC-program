@@ -4,7 +4,7 @@
 
 | 상수 | 값 | 타입 |
 |---|---|---|
-| COL_BCODE | bCODE | 숫자 문자열 |
+| COL_BCODE | 내부코드 | 숫자 문자열 |
 | COL_ID_NO | 식별번호 | 문자열 |
 | COL_HOSP_NUM | 병록번호 | 8자리 문자열 |
 | COL_NAME | 이름 | 한글 문자열 |
