@@ -177,10 +177,11 @@ pytest tests/
 | `resolve_year` | 2자리 연도 → 4자리 변환 |
 | `parse_personal_no` | 개인번호(M93.05) 파싱 |
 | `is_family_name` | 가족 키워드 감지 |
+| `_build_pers_no` | 성별·출생연도·출생월 → 개인번호 재조합 |
 | `_detect_columns` | R-ID 파일 컬럼 자동 감지 |
 | `_build_email_body` | 이메일 본문 생성 |
 
-**39개 테스트 전체 통과**
+**45개 테스트 전체 통과**
 
 ### 린터 (Linter)
 
