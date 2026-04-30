@@ -1049,24 +1049,25 @@ def run_update_collection_log(progress: ProgressWindow = None):
 def main():
     root = tk.Tk()
     root.title("임상연구 데이터 품질관리 시스템")
-    root.geometry("380x360")
+    root.geometry("520x390")
     root.resizable(False, False)
 
     tk.Label(root, text="임상연구 데이터 품질관리 시스템",
-             font=("맑은 고딕", 13, "bold")).pack(pady=(18, 4))
+             font=("맑은 고딕", 13, "bold")).pack(pady=(14, 3))
     tk.Label(root, text="IRB·DRB 승인 기반 R-ID 매칭 및 데이터 정합성 검증",
-             font=("맑은 고딕", 9), fg="#555").pack(pady=(0, 14))
+             font=("맑은 고딕", 9), fg="#555").pack(pady=(0, 10))
 
     frm = tk.Frame(root)
     frm.pack()
 
     btn_opts = [
-        ("1. Master DB 생성",            "#D4F0F0", run_build_master_db,           "Master DB 생성 중..."),
-        ("2. 병록번호·접수일자 추출",    "#D4F0D4", run_extract_for_rid_request,   "병록번호·접수일자 추출 중..."),
-        ("3. R-ID 매칭",                 "#F0E6D4", run_rid_matching,              "R-ID 매칭 중..."),
-        ("4. 오기입 보정 매칭",          "#F0D4E6", run_correction_matching,       "오기입 보정 매칭 중..."),
-        ("5. 오류 알림 발송",            "#FFFBD4", run_send_error_notification,   "오류 알림 준비 중..."),
-        ("6. 수집일지 자동 수정",        "#EAD4F0", run_update_collection_log,     "수집일지 자동 수정 중..."),
+        # (버튼 텍스트,                                  색상,      함수,                         진행창 제목)
+        ("1. 수집일지.xlsx  →  Master_DB 생성",          "#D4F0F0", run_build_master_db,          "Master DB 생성 중..."),
+        ("2. Master_DB  →  병록번호·접수일자 추출",      "#D4F0D4", run_extract_for_rid_request,  "병록번호·접수일자 추출 중..."),
+        ("3. Master_DB + R-ID파일  →  R-ID 매칭",        "#F0E6D4", run_rid_matching,             "R-ID 매칭 중..."),
+        ("4. 매칭결과 + 수집관리시스템  →  보정 매칭",   "#F0D4E6", run_correction_matching,      "오기입 보정 매칭 중..."),
+        ("5. 매칭결과.xlsx  →  오류 알림 발송",          "#FFFBD4", run_send_error_notification,  "오류 알림 준비 중..."),
+        ("6. 수집일지 + 수정파일  →  수집일지 자동 수정","#EAD4F0", run_update_collection_log,    "수집일지 자동 수정 중..."),
     ]
 
     def run_task(func, title):
@@ -1086,10 +1087,10 @@ def main():
 
     for txt, col, func, title in btn_opts:
         tk.Button(
-            frm, text=txt, width=32, height=1, bg=col,
+            frm, text=txt, width=44, height=1, bg=col,
             font=("맑은 고딕", 10),
             command=lambda f=func, t=title: run_task(f, t)
-        ).pack(pady=4)
+        ).pack(pady=3)
 
     root.mainloop()
 
