@@ -250,6 +250,16 @@ def run_build_master_db(progress: ProgressWindow = None):
             family.append(row.to_dict())
             continue
 
+        recv_date = row.get(COL_DATE)
+        if pd.isna(pd.to_datetime(recv_date, errors='coerce')):
+            row[COL_NOTE] = '접수일자 누락'
+            errors.append(row.to_dict())
+            continue
+        if pd.to_datetime(recv_date) > pd.Timestamp.today():
+            row[COL_NOTE] = '접수일자 미래날짜'
+            errors.append(row.to_dict())
+            continue
+
         gender, by, bm = parse_personal_no(pers)
         if gender and by and bm:
             recv_date = row.get(COL_DATE)
