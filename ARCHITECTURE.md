@@ -13,7 +13,7 @@ clinical_data_qc.py
 │   ├── 다중 파일 읽기 & 병합
 │   ├── 이름 정제 & 가족 분류 (is_family_name)
 │   ├── 개인번호 파싱 (parse_personal_no)
-│   ├── 생성ID 자동 생성 (build_internal_key)
+│   ├── 내부 식별키 자동 생성
 │   └── 식별번호 우선순위 정렬 (O > X > 기타)
 │
 ├── [STAGE 2] 병록번호·접수일자 추출  run_extract_for_rid_request()
@@ -76,7 +76,7 @@ clinical_data_qc.py
         │
         ▼
    [3단계: R-ID 매칭]
-   생성ID 매핑 → 매칭성공 / 미매칭 / 중복
+   내부 식별키 매핑 → 매칭성공 / 미매칭 / 중복
         │
    ┌────┴──────────┐
    │               │

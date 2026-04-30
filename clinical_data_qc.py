@@ -85,11 +85,7 @@ def is_family_name(name: str) -> Tuple[bool, str]:
 
 def build_internal_key(gender: str, birth_year: int, birth_month: int,
                         name: str, recv_date) -> str:
-    """
-    내부 식별키(생성ID) 생성
-    구성: 성별코드 + 출생연도 + 출생월(2자리) + 이름첫글자 + 접수일자(YYYYMMDD)
-    IRB 승인 R-ID와 매칭하기 위한 내부 키값으로만 사용됩니다.
-    """
+    """데이터 정합성 검증에 사용되는 내부 식별키를 생성합니다."""
     try:
         d = pd.to_datetime(recv_date, errors='coerce')
         if pd.isna(d):
@@ -421,7 +417,7 @@ def _build_rid_map(df_raw: pd.DataFrame, col_map: dict) -> Tuple[dict, set]:
 def run_rid_matching(progress: ProgressWindow = None):
     """
     IRB·DRB 승인 하에 수령한 R-ID 파일과 Master DB를 매칭합니다.
-    내부 식별키(생성ID) 기반으로 정합성을 검증하고 R-ID를 할당합니다.
+    내부 로직으로 정합성을 검증하고 R-ID를 할당합니다.
     """
     if progress:
         progress.update(0, "파일 선택 대기 중...")

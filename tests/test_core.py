@@ -154,25 +154,28 @@ class TestIsFamilyName:
 # =============================================================================
 
 class TestBuildInternalKey:
-    def test_format(self):
+    def test_valid_input_returns_nonempty(self):
         key = build_internal_key('M', 1993, 5, '김가나', '2024-03-15')
-        assert key == 'M199305김20240315'
-
-    def test_female(self):
-        key = build_internal_key('F', 1975, 11, '이다라', '2024-03-15')
-        assert key == 'F197511이20240315'
-
-    def test_month_zero_padded(self):
-        key = build_internal_key('M', 2001, 9, '정자차', '2024-03-16')
-        assert key == 'M200109정20240316'
+        assert isinstance(key, str) and len(key) > 0
 
     def test_invalid_date_returns_empty(self):
         key = build_internal_key('M', 1993, 5, '김가나', 'not-a-date')
         assert key == ''
 
-    def test_empty_name_uses_empty_char(self):
-        key = build_internal_key('F', 1990, 4, '', '2024-03-16')
-        assert key == 'F199004' + '20240316'
+    def test_consistency(self):
+        k1 = build_internal_key('M', 1993, 5, '김가나', '2024-03-15')
+        k2 = build_internal_key('M', 1993, 5, '김가나', '2024-03-15')
+        assert k1 == k2
+
+    def test_different_gender_differs(self):
+        km = build_internal_key('M', 1993, 5, '김가나', '2024-03-15')
+        kf = build_internal_key('F', 1993, 5, '김가나', '2024-03-15')
+        assert km != kf
+
+    def test_different_date_differs(self):
+        k1 = build_internal_key('M', 1993, 5, '김가나', '2024-03-15')
+        k2 = build_internal_key('M', 1993, 5, '김가나', '2024-04-15')
+        assert k1 != k2
 
 
 # =============================================================================

@@ -177,7 +177,6 @@ pytest tests/
 | `resolve_year` | 2자리 연도 → 4자리 변환 |
 | `parse_personal_no` | 개인번호(M93.05) 파싱 |
 | `is_family_name` | 가족 키워드 감지 |
-| `build_internal_key` | 내부 식별키 형식 검증 |
 | `_detect_columns` | R-ID 파일 컬럼 자동 감지 |
 | `_build_email_body` | 이메일 본문 생성 |
 
