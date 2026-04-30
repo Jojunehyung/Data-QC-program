@@ -574,6 +574,10 @@ def run_correction_matching(progress: ProgressWindow = None):
             messagebox.showerror("오류", f"'{SHEET_UNMATCH}' 시트가 없습니다.")
             return
         df_unmatch = pd.read_excel(mxls, SHEET_UNMATCH)
+        df_existing_matched = (
+            pd.read_excel(mxls, SHEET_MATCHED)
+            if SHEET_MATCHED in mxls.sheet_names else pd.DataFrame()
+        )
 
         if progress:
             progress.update(40, "외부 데이터소스 읽는 중...")
@@ -649,17 +653,18 @@ def run_correction_matching(progress: ProgressWindow = None):
         if progress:
             progress.update(88, "저장 중...")
 
-        save_path = Path(result_src).parent / '보정매칭결과.xlsx'
-
         def to_df(rows, drop_cols=None):
             df = pd.DataFrame(rows)
             if df.empty:
                 return pd.DataFrame()
             return df.drop(columns=drop_cols or [], errors='ignore')
 
-        with pd.ExcelWriter(save_path, engine='openpyxl') as writer:
-            to_df(re_matched, drop_cols=[COL_GEN_ID]).to_excel(
-                writer, sheet_name=SHEET_MATCHED, index=False)
+        # 기존 매칭성공 + 이번 재매칭 성공 합산
+        newly_matched_df = to_df(re_matched, drop_cols=[COL_GEN_ID])
+        all_matched = pd.concat([df_existing_matched, newly_matched_df], ignore_index=True)
+
+        with pd.ExcelWriter(result_src, engine='openpyxl') as writer:
+            all_matched.to_excel(writer, sheet_name=SHEET_MATCHED, index=False)
             to_df(still_unmatch, drop_cols=[COL_RID, COL_GEN_ID]).to_excel(
                 writer, sheet_name=SHEET_UNMATCH, index=False)
             to_df(dups, drop_cols=[COL_RID, COL_GEN_ID]).to_excel(
@@ -671,10 +676,10 @@ def run_correction_matching(progress: ProgressWindow = None):
         messagebox.showinfo("보정매칭 완료",
             f"완료!\n"
             f"- 오기입 보정: {corrected:,}건\n"
-            f"- 재매칭 성공: {len(re_matched):,}건\n"
-            f"- 미매칭:      {len(still_unmatch):,}건\n"
+            f"- 재매칭 성공: {len(re_matched):,}건  (매칭성공 시트로 이동)\n"
+            f"- 미매칭 잔여: {len(still_unmatch):,}건\n"
             f"- 중복:        {len(dups):,}건\n"
-            f"- 저장 위치:   {save_path.name}")
+            f"- 저장 위치:   {Path(result_src).name}  (기존 파일 업데이트)")
 
     except Exception as e:
         messagebox.showerror("오류", f"보정매칭 중 오류: {e}")
